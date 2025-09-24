@@ -229,3 +229,34 @@ SELECT * FROM burgers;
 
 -- 안전모드 재설정
 SET SQL_SAFE_UPDATES = 1;
+
+-- 특정(단일) 레코드 수정하기
+-- 빅맨 버거만 가격을 500으로 수정
+UPDATE burgers
+SET price = 500
+WHERE name = '빅맨'; -- 특정 대상 변경 시, 조건문은 반드시 기본키를 이용해야함
+-- 안전모드에서는 KEY 컬럼이 아닌 다른 값을 사용하면 막음
+
+-- 수정 대상 조건 개선: 키를 통한 변경 쿼리
+UPDATE burgers
+SET price = 500
+WHERE id = 1;
+
+-- 데이터 삭제하기: DELETE
+-- DELETE FROM 테이블명
+-- WHERE 조건; -- 삭제 대상을 찾는 조건
+
+-- '슈비두밥 버거'가 단종됐다면, 이를 위한 데이터 삭제 쿼리는?
+DELETE FROM burgers
+WHERE name = '슈비두밥 버거'; -- 에러 발생: 수정과 동일하게 조건문 반드시 기본키 사용
+
+-- Quiz: 슈비두밥 버거 삭제
+DELETE FROM burgers
+WHERE id = 4;
+-- 테이블 삭제하기
+-- 테이블 속 데이터 뿐만 아니라, 테이블 자체를 삭제하는 방법은?
+-- DROP TABLE 테이블명;
+
+DROP TABLE burgers;
+DESC burgers;
+SELECT * FROM burgers;
