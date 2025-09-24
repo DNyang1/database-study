@@ -151,3 +151,13 @@ VALUES (1, '빅맨', 5300, 223, 583, 27);
 -- WHERE 조건; -- 검색 조건
 
 -- burgers 테이블의 모든 컬럼을 조회하겠다
+SELECT *
+FROM burgers;
+
+-- 컬럼 생략 가능? 가능하지만 테이블 정의에 맞게 모든 컬럼을 입력하는 것이 좋음
+INSERT INTO burgers
+VALUES (2, '빅맨', 2900, 130, 352, 14);
+
+-- 
+INSERT INTO burgers (id, name, gram, kcal)
+VALUES (3, '불고기버거', 200, 507);
