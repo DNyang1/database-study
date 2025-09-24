@@ -103,5 +103,54 @@ WHERE name IS NOT NULL;
 -- TRUE/FALSE의 논리 연산
 -- TRUE(참: 1), FALSE(거짓: 0)
 
+-- AND 연산: 둘 다 참이여야 함
+SELECT TRUE AND TRUE;
+SELECT TRUE AND FALSE;
+SELECT FALSE AND TRUE;
+SELECT FALSE AND FALSE;
+
+-- OF 연산: 둘 중 하나만 참이면 참
+SELECT TRUE OR TRUE;
+SELECT TRUE OR FALSE;
+SELECT FALSE OR TRUE;
+SELECT FALSE OR FALSE;
+
+--  Quiz: 5500원 보다 싸고, 동시에 단백질함량이 25g 보다 많은 부거 찾기
+
+SELECT * FROM burgers WHERE price < 5500 AND protein > 25;
+
+--  Quiz: 5500원 보다 싸거나, 동시에 단백질함량이 25g 보다 많은 부거 찾기
+SELECT * FROM burgers WHERE price < 5500 OR protein > 25;
+
+--  Quiz: 단백질함량이 25g 보다 많지 않은 부거 찾기
+SELECT * FROM burgers WHERE NOT protein > 25;
+-- 가독성과 이식성을 위해서 AND, OR, NOT 을 사용하는게 좋아용
+
+-- 3) 산술 연산자
+-- 사칙 연산 등을 위한 수학적 연산 기호
+-- WHERE 절과 SELECT 절에서 사용 가능
+SELECT 100 + 20;
+SELECT 100 - 20;
+SELECT 100 * 20;
+SELECT 100 / 20;
+SELECT 100 % 20;
+
+-- 산술 연산자 활용 예
+-- SELECT 문에서의 산술 연산자 예시
+SELECT *, price / gram * 100 AS '100g(원)' FROM burgers;
+
+-- WHERE 절에서 산술 연산 예시
+-- 가격에 10%를 더한 값이 6500원을 넘는 버거 조회
+SELECT * FROM burgers WHERE price * 1.1 > 6500;
+
+-- 짝수 ID를 가진 버거만 조회
+SELECT * FROM burgers WHERE id % 2 = 0; 
+
+-- UPDATE 문에서 산술 연산 예시
+-- id가 5인 부거의 가격을 500 원 인하
+UPDATE burgers
+SET price = price - 500
+WHERE id = 5;
+
 
 
