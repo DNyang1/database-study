@@ -193,7 +193,7 @@ SELECT (TRUE OR TRUE) AND FALSE; -- 0
 -- (ᄅ) WHERE
 -- (ᄆ) OR
 
--- 정답: ㄹㄷㄱㅁㄷ
+-- 정답: ㄹㄴㄱㅁㄷ
 
 
 
@@ -214,7 +214,7 @@ USE university;
 -- programming: 프로그래밍 성적(정수형 숫자)
 -- 기본키 지정: id
 
-CREATE TABLE student(
+CREATE TABLE students(
 	id INTEGER AUTO_INCREMENT PRIMARY KEY,
 	nickname VARCHAR(95),
 	math INTEGER,
@@ -222,7 +222,7 @@ CREATE TABLE student(
 	programming INTEGER
 );
 -- students 데이터 삽입
-INSERT INTO university (id, nickname, math, english, programming);
+INSERT INTO students (id, nickname, math, english, programming) VALUES
 	(1, 'Sparkles', 98, 96, 93),
 	(2, 'Soldier', 82, 66, 98),
 	(3, 'Lapooheart', 84, 70, 82),
