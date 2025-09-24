@@ -142,3 +142,12 @@ DESCRIBE burgers;
 -- VALUES (입력값1, 입력값2, ...)
 
 -- 컬럼 순서와 개수에 맞게 값 입력
+INSERT INTO burgers(id, name, price, gram, kcal, protein)
+VALUES (1, '빅맨', 5300, 223, 583, 27);
+
+-- 데이터 조회하기 
+-- SELECT 컬럼명1, 컬럼명2, ... -- 조회할 컬럼 
+-- FROM 테이블명
+-- WHERE 조건; -- 검색 조건
+
+-- burgers 테이블의 모든 컬럼을 조회하겠다
