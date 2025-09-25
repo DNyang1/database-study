@@ -127,12 +127,96 @@ FROM burgers;
 -- ---------------------------------------
 -- ①          | ②             | ③
 
--- 정답: 770 20 30700
+-- 정답: 583, 20, 10600
 
 
+/*
+	4.2 집계 함수 실습: 은행 DB
+*/
+-- 데이터 셋 만들기: 은행 계좌 거래 내역
+-- bank DB 생성 및 진입
+CREATE DATABASE bank;
+USE bank;
 
+-- transactions 테이블 생성
+CREATE TABLE transactions (
+	id INTEGER, 			-- 아이디
+	amount DECIMAL(12, 2), 	-- 거래 금액(12자릿수: 정수 10자리까지, 소수점 이하는 2자리까지 허용)
+	msg VARCHAR(15), 		-- 거래처
+	created_at DATETIME, 	-- 거래 일시
+	PRIMARY KEY (id) 		-- 기본키 지정: id
+);
 
+-- transactions 데이터 삽입
+INSERT INTO transactions (id, amount, msg, created_at)
+VALUES
+	(1, -24.20, 'Google', '2024-11-01 10:02:48'),
+	(2, -36.30, 'Amazon', '2024-11-02 10:01:05'),
+	(3, 557.13, 'Udemy', '2024-11-10 11:00:09'),
+	(4, -684.04, 'Bank of America', '2024-11-15 17:30:16'),
+	(5, 495.71, 'PayPal', '2024-11-26 10:30:20'),
+	(6, 726.87, 'Google', '2024-11-26 10:31:04'),
+	(7, 124.71, 'Amazon', '2024-11-26 10:32:02'),
+	(8, -24.20, 'Google', '2024-12-01 10:00:21'),
+	(9, -36.30, 'Amazon', '2024-12-02 10:03:43'),
+	(10, 821.63, 'Udemy', '2024-12-10 11:01:19'),
+	(11, -837.25, 'Bank of America', '2024-12-14 17:32:54'),
+	(12, 695.96, 'PayPal', '2024-12-27 10:32:02'),
+	(13, 947.20, 'Google', '2024-12-28 10:33:40'),
+	(14, 231.97, 'Amazon', '2024-12-28 10:35:12'),
+	(15, -24.20, 'Google', '2025-01-03 10:01:20'),
+	(16, -36.30, 'Amazon', '2025-01-03 10:02:35'),
+	(17, 1270.87, 'Udemy', '2025-01-10 11:03:55'),
+	(18, -540.64, 'Bank of America', '2025-01-14 17:33:01'),
+	(19, 732.33, 'PayPal', '2025-01-25 10:31:21'),
+	(20, 1328.72, 'Google', '2025-01-26 10:32:45'),
+	(21, 824.71, 'Amazon', '2025-01-27 10:33:01'),
+	(22, 182.55, 'Coupang', '2025-01-27 10:33:25'),
+	(23, -24.20, 'Google', '2025-02-03 10:02:23'),
+	(24, -36.30, 'Amazon', '2025-02-03 10:02:34'),
+	(25, -36.30, 'Notion', '2025-02-03 10:04:51'),
+	(26, 1549.27, 'Udemy', '2025-02-14 11:00:01'),
+	(27, -480.78, 'Bank of America', '2025-02-14 17:30:12');
 
+-- 잘 들어갔나 확인
+SELECT * FROM transactions;
 
+-- 거래 금액의 총합 구하기
+SELECT SUM(amount) FROM transactions;
 
+-- 구글과 거래한 금액의 총합은?
+SELECT SUM(amount) FROM transactions WHERE msg = 'Google';
 
+-- 거래 금액의 최대값/최소값 구하기
+SELECT MAX(amount), MIN(amount) FROM transactions
+
+--  페이팔과 거래한 금액의 최대값/최소값은?
+SELECT MAX(amount), MIN(amount) FROM transactions WHERE msg = 'PayPal';
+
+-- 전체 거래 횟수 세기
+SELECT count(amount) FROM transactions;
+
+-- 쿠팡 및 아마존과 거래한 횟수?
+SELECT count(amount) FROM transactions WHERE msg = 'Coupang' or msg = 'Amazon';
+
+-- 위 쿼리를 IN 연산자를 활용한 버전으로 다시 작성한다면?
+SELECT count(amount) FROM transactions WHERE msg IN ('Coupang', 'Amazon');
+-- IN 의미 : msg가 () 안에 포함 되어 있으면 TRUE
+-- IN 연산자를 사용하면 훨씬 더 직관적이고 편리
+-- (참고) NOT IN: 목록에 포함되어있지 않은 것은
+
+-- 입금 금액의 평균 구하기
+SELECT AVG(amount) FROM transactions WHERE amount > 0;
+
+-- 구글과 아마존에서 입금 받은 금액의 평균은?
+SELECT AVG(amount) FROM transactions WHERE amount > 0 AND msg IN ('Google', 'Amazon');
+
+-- 거래처 목록 조회하기
+SELECT msg FROM transactions;
+
+-- 거래처를 담은 msg만 조회하면? 중복된 결과가 나옴
+-- 중복을 제거하여 조회하려면? DISTINCT 중복제거 키워드를 적음
+SELECT DISTINCT 컬럼명 FROM 테이블명;
+
+-- 거래처 목록이 아닌 거래처의 수를 조회하려면?
+SELECT count(DISTINCT msg) FROM transactions;
