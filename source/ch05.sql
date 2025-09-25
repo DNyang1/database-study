@@ -1,3 +1,4 @@
+-- Active: 1758675041396@@127.0.0.1@3306@store
 /*
 	5. 다양한 자료형 활용하기
 	5.1 자료형이란
@@ -196,13 +197,13 @@ CREATE TABLE memberships (
 
 -- Quiz: 사용자 프로필(user_profiles) 테이블 생성
 CREATE TABLE user_profiles (
-	id, -- 아이디(표준 정수)
-    email, -- 이메일(가변 길이 문자: 최대 255자)
-    phone_number, -- 전화번호(고정 길이 문자: 13자)
-    self_introduction, -- 자기소개(긴 문자열: 최대 64KB)
-    profile_picture, -- 프로필 사진(파일: 최대 16MB)
-    gender, -- 성별(선택 목록 중 택 1)
-    -- 기본키 지정: id
+	id INT, -- 아이디(표준 정수)
+    email VARCHAR(255), -- 이메일(가변 길이 문자: 최대 255자)
+    phone_number CHAR(13), -- 전화번호(고정 길이 문자: 13자)
+    self_introduction TEXT, -- 자기소개(긴 문자열: 최대 64KB)
+    profile_picture MEDIUMBLOB, -- 프로필 사진(파일: 최대 16MB)
+    gender ENUM('남', '여'), -- 성별(선택 목록 중 택 1)
+    PRIMARY KEY (id) -- 기본키 지정: id
 );
 
 -- 사용자 프로필(user_profiles) 데이터 삽입
@@ -265,7 +266,7 @@ FROM user_profiles;
 
 -- Quiz: 이벤트(events) 테이블 생성
 CREATE TABLE events (
-	id INTEGER, 				-- 아이디(표준 정수)
+	id INT, 				-- 아이디(표준 정수)
 	event_name VARCHAR(100), 	-- 이벤트명(가변 길이 문자: 최대 100자)
 	event_date DATE, 			-- 이벤트 일자(YYYY-MM-DD)
 	start_time TIME, 			-- 이벤트 시간(hh:mm:ss)
@@ -287,10 +288,9 @@ FROM events;
 
 -- Quiz
 -- 1. 다음은 orders(주문)테이블을 생성하는 쿼리이다. 바르게 설명한 것을 모두 고르세요.
-
 CREATE TABLE orders (
 	id INTEGER,              -- 아이디
-	name VARCHAR (255), 	 -- 상품명
+	name VARCHAR(255), 	 -- 상품명
 	price DECIMAL(10, 2),    -- 가격
 	quantity INTEGER,        -- 주문 수량
 	customer_name CHAR(100), -- 고객명
@@ -298,13 +298,106 @@ CREATE TABLE orders (
 	created_at DATETIME,     -- 주문 일시
 	PRIMARY KEY (id)
 );
+
 -- ① id는 기본키로 선언됐다.
 -- ② name은 최대 255자까지 저장할 수 있다.
 -- ③ price에 저장할 수 있는 최댓값은 9,999,999,999이다.
 -- ④ customer_name이 100자보다 짧으면, 고객명을 저장하고 남은 만큼의 메모리 공간이 절약된다.
 -- ⑤ created_at에는 날짜와 시간 값을 모두 저장할 수 있다.
 
--- 정답: 1 2 5
+-- 정답: 1, 2, 5
+
+
+/*
+	5.2 자료형에 따른 필터링 실습: 상점 DB
+*/
+-- 데이터 타입 별 필터링 훈련하기
+
+-- 데이터 셋 만들기
+-- store DB 생성 및 진입
+CREATE DATABASE store;
+USE store;
+
+-- orders 테이블 생성
+CREATE TABLE orders (
+	id INTEGER, 			-- 아이디(표준 정수)
+	name VARCHAR(255), 		-- 상품명(가변 길이 문자: 최대 255자)
+	price DECIMAL(10, 2), 	-- 가격(고정 소수점 방식 실수)
+	quantity INTEGER, 		-- 주문 수량(표준 정수)
+	created_at DATETIME, 	-- 주문 일시(날짜 및 시간형)
+	PRIMARY KEY (id) 		-- 기본키 지정: id
+);
+
+-- orders 데이터 삽입
+INSERT INTO orders (id, name, price, quantity, created_at)
+VALUES
+	(1, '생돌김 50매', 5387.75, 1, '2024-10-24 01:19:44'),
+	(2, '그릭 요거트 400g, 2개', 7182.25, 2, '2024-10-24 01:19:44'),
+	(3, '냉장 닭다리살 500g', 6174.50, 1, '2024-10-24 01:19:44'),
+	(4, '냉장 고추장 제육 1kg', 9765.00, 1, '2024-10-24 01:19:44'),
+	(5, '결명자차 8g * 18티백', 4092.25, 1, '2024-10-24 01:19:44'),
+	(6, '올리브 오일 1l', 17990.00, 1, '2024-11-06 22:52:33'),
+	(7, '두유 950ml, 20개', 35900.12, 1, '2024-11-06 22:52:33'),
+	(8, '카카오 닙스 1kg', 12674.50, 1, '2024-11-06 22:52:33'),
+	(9, '손질 삼치살 600g', 9324.75, 1, '2024-11-16 14:55:23'),
+	(10, '자숙 바지락 260g', 6282.00, 1, '2024-11-16 14:55:23'),
+	(11, '크리스피 핫도그 400g', 7787.50, 2, '2024-11-16 14:55:23'),
+	(12, '우유 900ml', 4360.00, 2, '2024-11-16 14:55:23'),
+	(13, '모둠 해물 800g', 4770.15, 1, '2024-11-28 11:12:09'),
+	(14, '토마토 케첩 800g', 3120.33, 3, '2024-11-28 11:12:09'),
+	(15, '계란 30구', 8490.00, 2, '2024-12-11 12:34:56'),
+	(16, '해물 모듬 5팩 묶음 400g', 9800.50, 4, '2024-12-11 12:34:56'),
+	(17, '칵테일 새우 900g', 22240.20, 1, '2024-12-11 12:34:56'),
+	(18, '토마토 케첩 1.43kg', 7680.25, 1, '2024-12-11 12:34:56'),
+	(19, '국내산 양파 3kg', 5192.00, 1, '2024-12-11 12:34:56'),
+	(20, '국내산 깐마늘 1kg', 9520.25, 1, '2024-12-11 12:34:56');
+
+-- 데이터 조회
+SELECT * FROM orders;
+
+-- 1. 문자열 필터링 하기
+-- 예: 상품명에 '케첩'이 포함된 주문을 조회
+SELECT * FROM 테이블명 WHERE 컬럼명 LIKE '찾는_패턴';
+
+-- 와일드 카드
+-- LIKE와 함꼐 사용해서 특정 패턴을 찾는다
+-- %(퍼센트): 0개 또는 그이상
+-- _(언더 스코어): 정확히 1개의 임이의 문자를 의미
+
+-- 사용 예
+-- LIKE '케첩%'; 
+-- LIKE '%케첩%'
+-- LIKE '%케첩_'
+-- LIKE '_케첩%'
+
+-- 상품명이 '케첩' 인 대상 찾기
+SELECT * FROM orders WHERE name LIKE '%케첩%';
+-- (참고) NOT LIKE: 특정 패턴만 제외하고
+-- 예: 서울에 안사는 사람 보여달라
+SELECT * FROM costumers WHERE add NOT LIKE '사을특뱔시';
+
+-- 2) answkduf gkatn
+-- CONCAT 문자열을 합쳐줌
+CONCAT name, price, CONCAT(name, '/', price',.,' price
+-- (WS)
+CONCAT_WS,);
+FORM orders
+-- UPPER() / LOWER(); 문자열을 모두 대문자 또는 소문자ㅗㄹ 변경
+-- 예: 이메일 검색 등에서 대소문자 구분없이 검색가능
+SELECT name, upper(name) as upper_nae FROM orders
+
+-- LENGTH():  문자열의 길이를 바이트로 반환
+-- CHAR_LENGTH(): 글자 수륿 반환
+-- (참고) URF-8 인코딩 기준 한글은 3바이트
+SELECT name, CHAR_LENGTH(name) AS '길이', CHAR_LENGTH(name) as '바이트' FROM orders
+
+
+
+
+
+
+
+
 
 
 
