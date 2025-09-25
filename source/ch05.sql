@@ -1,4 +1,3 @@
--- Active: 1758675041396@@127.0.0.1@3306@store
 /*
 	5. 다양한 자료형 활용하기
 	5.1 자료형이란
@@ -355,49 +354,171 @@ VALUES
 -- 데이터 조회
 SELECT * FROM orders;
 
--- 1. 문자열 필터링 하기
--- 예: 상품명에 '케첩'이 포함된 주문을 조회
-SELECT * FROM 테이블명 WHERE 컬럼명 LIKE '찾는_패턴';
+-- 1. 문자열 필터링하기
+-- 예: 상품명에 '케첩'이 포함된 주문을 조회하려면?
+
+-- 1) LIKE 연산자
+-- 컬럼에서 특정 패턴과 일치하는 대상(문자열)을 찾아 필터링 수행
+SELECT *
+FROM 테이블명
+WHERE 컬럼명 LIKE '찾는_패턴';
 
 -- 와일드 카드
--- LIKE와 함꼐 사용해서 특정 패턴을 찾는다
--- %(퍼센트): 0개 또는 그이상
--- _(언더 스코어): 정확히 1개의 임이의 문자를 의미
+-- LIKE와 함께 사용하여 특정 패턴을 찾는 연산자
+-- %(퍼센트): 0개 또는 그 이상의 임의의 문자를 의미
+-- _(언더 스코어): 정확히 1개의 임의의 문자를 의미
 
 -- 사용 예
--- LIKE '케첩%'; 
--- LIKE '%케첩%'
--- LIKE '%케첩_'
--- LIKE '_케첩%'
+-- LIKE '케첩%': '케첩'으로 시작하는 임의의 문자 => 케첩 소스
+-- LIKE '%케첩': '케첩'으로 끝나는 임의의 문자 => 토마토 케첩
+-- LIKE '%케첩%': '케첩'을 포함하는 임의의 문자 => 토마토 케첩 소스, 케첩 소스, 토마토 케첩
+-- LIKE '케첩_': '케첩'으로 시작하는 3글자 => 케첩병
+-- LIKE '_케첩': '케첩'으로 끝나는 3글자 => 꿀케첩
 
--- 상품명이 '케첩' 인 대상 찾기
-SELECT * FROM orders WHERE name LIKE '%케첩%';
--- (참고) NOT LIKE: 특정 패턴만 제외하고
--- 예: 서울에 안사는 사람 보여달라
-SELECT * FROM costumers WHERE add NOT LIKE '사을특뱔시';
+-- 상품명이 '케첩'인 대상 찾기
+SELECT *
+FROM orders
+WHERE name LIKE '케첩';
 
--- 2) answkduf gkatn
--- CONCAT 문자열을 합쳐줌
-CONCAT name, price, CONCAT(name, '/', price',.,' price
--- (WS)
-CONCAT_WS,);
-FORM orders
--- UPPER() / LOWER(); 문자열을 모두 대문자 또는 소문자ㅗㄹ 변경
--- 예: 이메일 검색 등에서 대소문자 구분없이 검색가능
-SELECT name, upper(name) as upper_nae FROM orders
+-- 상품명에 '케첩'이 포함된 대상 찾기
+SELECT *
+FROM orders
+WHERE name LIKE '%케첩%';
 
--- LENGTH():  문자열의 길이를 바이트로 반환
--- CHAR_LENGTH(): 글자 수륿 반환
--- (참고) URF-8 인코딩 기준 한글은 3바이트
-SELECT name, CHAR_LENGTH(name) AS '길이', CHAR_LENGTH(name) as '바이트' FROM orders
+-- (참고) NOT LIKE: 특정 패턴을 제외하고 검색
+-- 예: 서울특별시에 살지 않는 고객
+SELECT *
+FROM customers
+WHERE address NOT LIKE '서울특별시%';
+
+-- 2) 문자열 함수
+-- CONCAT(문자열1, 문자열2, ...): 문자열 합치기, 괄호 안에 전달된 여러 문자열을 순서대로 이어 붙여 하나의 문자열로 만듦
+SELECT name, price, CONCAT(name, ' / ', price, '원') AS name_and_price
+FROM orders;
+
+-- CONCAT_WS(구분자, 문자열1, 문자열2, ...): CONCAT과 비슷하지만, 첫 번째 인자로 '구분자'를 받아 각 문자열 사이에 자동으로 넣어줌
+-- (참고) MySQL 전용 함수, WS는 'With Separator'의 약자
+SELECT CONCAT_WS(' - ', name, price, quantity) AS order_details
+FROM orders;
+
+-- UPPER() / LOWER(): 문자열을 모두 대문자 또는 소문자로 변경
+-- 예: 이메일 검색 등에서 대소문자 구분 없이 비교해야 할 때 유용
+SELECT name, UPPER(name) AS upper_name
+FROM orders;
+
+-- LENGTH(): 문자열의 길이를 바이트 단위로 반환
+-- CHAR_LENGTH(): 글자 수를 반환
+-- (참고) UTF-8 인코딩 기준 한글은 3바이트
+SELECT name, CHAR_LENGTH(name) AS char_length, LENGTH(name) AS byte_length
+FROM orders;
+
+-- 2. 날짜 필터링하기
+-- 예: 11월에 주문받은 상품 개수의 합을 구하려면?
+
+-- 1) 날짜 함수
+-- 입력받은 날짜에서 연도, 월, 일을 추출
+-- YEAR(날짜): 입력 날짜의 '연도' 추출, 예: YEAR('2024-04-15') => 2024
+-- MONTH(날짜): 입력 날짜의 '월' 추출, 예: MONTH('2024-04-15') => 4
+-- DAY(날짜): 입력 날짜의 '일' 추출, 예: DAY('2024-04-15') => 15
+-- EXTRACT(필드 FROM 날짜): 입력 날짜에서 특정 '필드' 추출, 예: EXTRACT(YEAR FROM '2024-04-15') => 2024
+-- 필드: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND 등
+
+-- 11월에 주문받은 상품 조회
+SELECT *
+FROM orders
+WHERE MONTH(created_at) = 11;
+
+-- 11월에 주문받은 상품의 개수 총합
+SELECT SUM(quantity)
+FROM orders
+WHERE MONTH(created_at) = 11;
+
+-- 3. 시간 필터링하기
+-- 예: 오전에 주문받은 매출 합계를 구하려면?
+
+-- 1) 시간 함수
+-- 입력받은 시간에서 시, 분, 초 등을 추출
+-- HOUR(시간): 입력 시간의 '시' 추출, 예: HOUR('2024-10-04 08:30:45') => 8
+-- MINUTE(시간): 입력 시간의 '분' 추출, 예: MINUTE('2024-10-04 08:30:45') => 30
+-- SECOND(시간): 입력 시간의 '초' 추출, 예: SECOND('2024-10-04 08:30:45') => 45
+-- TIME_TO_SEC(시간): 입력 시간의 시, 분, 초를 '초'로 환산, 예: TIME_TO_SEC('08:30:45') => 30645
+
+-- 오전에 주문받은 모든 상품 조회
+SELECT *
+FROM orders
+WHERE HOUR(created_at) < 12;
+
+-- 오전에 주문받은 모든 상품 매출의 합계 조회
+SELECT SUM(price * quantity)
+FROM orders
+WHERE HOUR(created_at) < 12;
+
+-- 4. 특정 범위 필터링하기
+-- 1) BETWEEN 연산자
+-- 두 값 사이에 속하는지 확인할 때 사용하는 연산자(두 값을 포함하여 찾음)
+SELECT *
+FROM 테이블명
+WHERE 컬럼명 BETWEEN 시작_값 AND 마지막_값;
+
+-- 상품 가격이 10000 ~ 20000원 사이에 있는 주문은?
+SELECT *
+FROM orders
+WHERE price BETWEEN 10000 AND 20000;
+
+-- (참고) price가 10000 ~ 20000 사이가 아닌 주문 조회
+SELECT *
+FROM orders
+WHERE price NOT BETWEEN 10000 AND 20000;
+
+-- 주문 시각이 2024-11-15 부터 2024-12-15 사이에 있는 주문의 개수는?
+SELECT COUNT(*)
+FROM orders
+WHERE created_at BETWEEN '2024-11-15' AND '2024-12-15';
+
+-- 상품명이 'ㄱ'으로 시작하는 모든 주문 내역은?
+-- 첫 글자가 'ㄱ'으로 시작하는 걸 찾으려면 유니코드 범위를 활용
+-- 가(AC00) ~ 깋(ACFF) 범위에 해당
+SELECT *
+FROM orders
+WHERE name >= '가' AND name < '나';
+
+-- 테스트용 데이터
+INSERT INTO orders (id, name, price, quantity, created_at)
+VALUES
+	(21, '깋내산 고추장', 5387.75, 1, '2024-10-24 01:19:44'),
+    (22, 'ㄱ자형 책상', 5387.75, 1, '2024-10-24 01:19:44');
+
+-- Quiz
+-- 2. 다음 빈칸에 들어갈 용어를 순서대로 고르면? (예: ㄱㄴㄷㄹㅁ)
+-- ① __________: 문자열이 특정 패턴과 완전히 혹은 일부와 일치하는지 확인하는 연산자
+-- ② __________: 입력 날짜의 연도를 반환하는 함수
+-- ③ __________: 입력받은 날짜 데이터에서 특정 필드를 추출하는 함수
+-- ④ __________: 시작 값과 마지막 값을 포함해 두 값 사이의 범위에 속하는지 확인하는 연산자
+-- ⑤ __________: 입력 시간의 시, 분, 초를 '초'로 환산하는 함수
+
+-- (ㄱ) BETWEEN
+-- (ㄴ) LIKE
+-- (ㄷ) YEAR()
+-- (ㄹ) EXTRACT()
+-- (ㅁ) TIME_TO_SEC()
+
+-- 정답:ㄴㄷㄹㄱㅁ
 
 
 
+-- (참고)
+-- SQL 표준 함수
+-- SQL 표준 함수는 대부분의 관계형 데이터베이스(MySQL, PostgreSQL, Oracle 등)에서 거의 동일하게 동작하는 함수들을 말한다.
+-- 따라서 이 함수들에 익숙해지면 다른 데이터베이스 시스템으로 전환하더라도 큰 어려움 없이 적응할 수 있다.
+-- 또한 SQL 표준 함수는 대부분의 RDBMS(관계형 데이터베이스 관리 시스템)에서 공통으로 지원하므로 
+-- 데이터베이스 이전 시에도 코드 호환성을 유지하는 데 도움이 된다.
 
+-- MySQL 전용 함수
+-- MySQL은 개발 편의성과 강력한 기능을 위해 SQL 표준 외에 다양한 함수들을 제공한다.
 
+-- 실제로는 더 많은 특수 목적의 함수들이 존재하며, 최신 버전의 MySQL이 출시될 때마다 새로운 함수들이 추가될 수 있다.
+-- 가장 정확하고 완전한 정보는 MySQL 공식 문서를 참고하자
 
-
-
-
-
+-- MySQL 공식 문서 - 함수
+-- https://dev.mysql.com/doc/refman/8.0/en/functions.html
 
