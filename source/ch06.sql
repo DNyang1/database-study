@@ -368,8 +368,8 @@ CREATE TABLE passports (
   id INTEGER,                  -- ID
   passport_number VARCHAR(20), -- 여권 번호
   person_id INTEGER UNIQUE,    -- 사람_ID
-  PRIMARY KEY (id)-- 기본키 지정: id
-  Foreign Key (person_id) REFERENCES persons(id)-- 외래키 지정: person_id
+  PRIMARY KEY (id),          -- 기본키 지정: id
+  FOREIGN KEY (person_id) REFERENCES persons(id) -- 외래키 지정: person_id
 );
 
 -- 2. 회사와 직원(한 회사는 여러 직원을 고용할 수 있지만, 한 직원은 하나의 회사에만 소속)
@@ -385,8 +385,8 @@ CREATE TABLE employees (
   id INTEGER,             -- ID
   name VARCHAR(50),       -- 직원명
   company_id INTEGER,     -- 회사_ID
-  PRIMARY KEY (id) -- 기본키 지정:
-  Foreign Key (company_id) REFERENCES companies(id)-- 외래키 지정: company_id
+  PRIMARY KEY (id),      -- 기본키 지정: id
+  FOREIGN KEY (company_id) REFERENCES companies(id) -- 외래키 지정: company_id
 );
 
 -- 3. 학생과 과목(한 학생은 여러 과목을 수강하고, 한 과목은 여러 학생이 수강할 수 있음)
@@ -394,7 +394,7 @@ CREATE TABLE employees (
 CREATE TABLE students (
   id INTEGER,          -- ID
   name VARCHAR(50),    -- 학생명
-  PRIMARY KEY(id)    -- 기본키 지정: id
+  PRIMARY KEY (id)    -- 기본키 지정: id
 );
 
 -- 과목 테이블
@@ -409,9 +409,9 @@ CREATE TABLE enrollments (
   id INTEGER,          -- ID
   student_id INTEGER,  -- 학생_ID
   subject_id INTEGER,  -- 과목_ID
-  PRIMARY KEY (id)    -- 기본키 지정: id
-  Foreign Key (student_id) REFERENCES students(id)  -- 외래키 지정: student_id 
-  Foreign Key (subject_id) REFERENCES subjects(id)  -- 외래키 지정: subject_id 
+  PRIMARY KEY (id),    -- 기본키 지정: id
+  FOREIGN KEY (student_id) REFERENCES students(id), -- 외래키 지정: student_id 
+  FOREIGN KEY (subject_id) REFERENCES subjects(id)  -- 외래키 지정: subject_id 
 );
 
 -- Quiz
@@ -441,11 +441,11 @@ CREATE TABLE enrollments (
 -- 5  | 3          | 3           | 2025-01-05
 -- 6  | 3          | 1           | 2025-01-06
 
--- ① '김 닥터'는 '환자 A'를 진료했다. ( d )
+-- ① '김 닥터'는 '환자 A'를 진료했다. (  )
 -- ② '이 닥터'는 3회의 진료 기록이 있다. (  )
--- ③ '환자 C'는 '최 닥터'에게 진료를 받았다. ( d )
+-- ③ '환자 C'는 '최 닥터'에게 진료를 받았다. (  )
 
--- 정답: 
+-- 정답: O, X, O
 
 -- 3. 다음 설명이 맞으면 O, 틀리면 X를 표시하시오.
 -- ① 두 테이블 간 일대일 관계는 어느 쪽에 외래키를 지정해도 무방하나 대게 테이블의 사용 빈도가 적은 쪽에 지정한다. 
@@ -453,8 +453,176 @@ CREATE TABLE enrollments (
 -- ② 두 테이블 간 일대다 관계는 '일' 쪽 테이블에 외래키를 지정한다. (  )
 -- ③ 두 테이블 간 다대다 관계는 중간 테이블을 만들어 두 테이블의 기본키를 참조하도록 외래키를 지정한다. (  )
 
--- 정답: 3
+-- 정답: O, X, O
 
 
+/*
+	6.3 관계 만들기 실습: 별그램 DB
+*/
+-- 사진 공유 SNS, 별그램 DB를 만들며 다양한 관계 생성 훈련!
 
+-- 별그램 DB의 테이블 개요
+-- • users(사용자): 사용자의 '아이디', '닉네임, '이메일'을 저장합니다.
+-- • photos(사진): 사진의 '아이디', '파일명', '게시자 아이디'를 저장합니다.
+-- • comments(댓글): 댓글의 '아이디', '본문', 작성자 아이디', '댓글이 달린 사진 아이디'를 저장합니다.
+-- • settings(개인 설정): 사용자 개인 설정의 '아이디, '계정 공개 여부', '계정 추천 여부', '사용자 아이디'를 저장합니다.
+-- • likes(좋아요): 좋아요의 '아이디', '좋아요를 누른 사용자 아이디', '좋아요를 받은 사진 아이디'를 저장합니다.
+
+-- 5개의 테이블은 다음과 같은 관계를 가짐
+-- • 일대일 관계: '사용자'는 개인별로 하나의 '개인 설정' 값만 가질 수 있습니다.
+-- • 일대다 관계: '사용자'는 여러 장의 '사진'을 게시할 수 있습니다.
+-- • 다대다 관계:
+-- - '사용자'는 여러 '사진'에 댓글을 작성할 수 있고, '사진' 또한 여러 '사용자'로부터 댓글을 받을 수 있습니다.
+-- - '사용자'는 여러 '사진'에 좋아요를 누를 수 있고, '사진' 또한 여러 '사용자'로부터 좋아요를 받을 수 있습니다.
+
+-- stargram DB 생성 및 진입
+CREATE DATABASE stargram;
+USE stargram;
+
+-- 1. 사용자 테이블 만들기
+CREATE TABLE users (
+	id INT AUTO_INCREMENT,
+    nickname VARCHAR(30),
+    email VARCHAR(255) UNIQUE,
+    PRIMARY KEY (id)
+);
+
+-- 2. 사진 테이블 만들기
+CREATE TABLE photos (
+	id INT AUTO_INCREMENT,
+    filename VARCHAR(255) NOT NULL,
+    user_id INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 3. 댓글 테이블 만들기
+CREATE TABLE comments (
+	id INT AUTO_INCREMENT,
+    body VARCHAR(1000),
+    user_id INT,
+    photo_id INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (photo_id) REFERENCES photos(id)
+);
+
+-- 4. 개인 설정 테이블 만들기
+CREATE TABLE settings (
+	id INT AUTO_INCREMENT,
+    private BOOLEAN NOT NULL,
+    account_suggestions BOOLEAN NOT NULL,
+    user_id INT UNIQUE, -- 1:1 연결을 위해 UNIQUE 지정
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 5. 좋아요 테이블 만들기
+CREATE TABLE likes (
+	id INT AUTO_INCREMENT,
+    user_id INT,
+    photo_id INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (photo_id) REFERENCES photos(id)
+);
+
+-- users 데이터 삽입(id는 자동 증가값으로 입력되므로 생략)
+INSERT INTO users (nickname, email)
+VALUES
+	('홍팍', 'sehongpark@cloudstudying.kr'),
+	('길벗', 'gilbut@cloudstudying.kr'),
+	('해삼', 'haesamq@cloudstudying.kr');
+
+-- 데이터 조회
+SELECT *
+FROM users;
+
+-- photos 데이터 삽입
+INSERT INTO photos (filename, user_id)
+VALUES
+	-- 1번 사용자가 게시한 사진
+	('길고양이.jpg', 1),
+	('일몰.jpg', 1),
+	('은하계.jpg', 1),
+	-- 2번 사용자가 게시한 사진
+	('백호.jpg', 2),
+	('검은 고양이 네로.jpg', 2),
+	-- 사용자가 등록되지 않은 사진
+	('삭제된 이미지.jpg', NULL),
+	('제한된 이미지.jpg', NULL);
+
+-- 데이터 조회
+SELECT *
+FROM photos;
+
+-- comments 데이터 삽입
+INSERT INTO comments (body, user_id, photo_id)
+VALUES
+	-- 1번 사진에 달린 댓글
+	('미야옹~', 1, 1),
+	('냐옹!', 2, 1),
+	('냥냥~', 3, 1),
+	-- 2번 사진에 달린 댓글
+	('일몰이 멋지네요', 1, 2),
+	('해가 바다로 스윽~', 2, 2),
+	-- 3번 사진에 달린 댓글
+	('안드로메다 성운인가?', 1, 3),
+	('성운이 아니라 은하임', 3, 3),
+	-- 대상 사진이 없는 댓글
+	('와우~', 3, NULL),
+	('오우야~', 3, NULL);
+
+-- 데이터 조회
+SELECT *
+FROM comments;
+
+-- settings 데이터 삽입
+INSERT INTO settings (private, account_suggestions, user_id)
+VALUES
+	(FALSE, FALSE, 1), 	-- 1번 사용자(비공개 계정, 계정 추천 불가)
+	(FALSE, TRUE, 2), 	-- 2번 사용자(비공개 계정, 계정 추천 허용)
+	(TRUE, TRUE, 3); 	-- 3번 사용자(공개 계정, 계정 추천 허용)
+
+-- 데이터 조회
+SELECT *
+FROM settings;
+
+-- likes 데이터 삽입
+INSERT INTO likes (user_id, photo_id)
+VALUES
+	-- 1번 사진에 달린 좋아요: 1, 2번 사용자가 누름
+	(1, 1),
+	(2, 1),
+	-- 2번 사진에 달린 좋아요: 1, 2, 3번 사용자가 누름
+	(1, 2),
+	(2, 2),
+	(3, 2),
+	-- 3번 사진에 달린 좋아요: 1, 3번 사용자가 누름
+	(1, 3),
+	(3, 3),
+	-- 6번 사진에 달린 좋아요, 사용자 미등록(탈퇴?, 영정?)
+	(NULL, 6),
+	-- 7번 사진에 달린 좋아요: 사용자 미등록
+	(NULL, 7);
+
+-- 데이터 조회
+SELECT *
+FROM likes;
+
+-- Quiz
+-- 4. 다음 빈칸에 들어갈 용어를 고르시오. (예: ㄱㄴㄷㄹㅁ)
+-- ① __________: 컬럼 값이 1씩 증가하며 자동으로 입력되도록 하는 제약 조건
+-- ② __________: 컬럼에 값이 반드시 입력되도록 강제하는 제약 조건
+-- ③ __________: 두 테이블 간에 다대다 관계를 맺기 위해 필요한 테이블
+-- ④ __________: 참 또는 거짓을 저장하기 위한 자료형
+-- ⑤ __________: 컬럼의 값이 중복되지 않고 고유한 값만 가지게 하는 제약 조건
+
+-- (ㄱ) BOOLEAN
+-- (ㄴ) NOT NULL
+-- (ㄷ) 중간 테이블
+-- (ㄹ) UNIQUE
+-- (ㅁ) AUTO_INCREMENT
+
+-- 정답: ㅁㄴㄷㄱㄹ 
 
