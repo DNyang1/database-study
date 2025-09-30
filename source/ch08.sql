@@ -373,26 +373,215 @@ CREATE DATABASE market;
 USE market;
 
 -- users 테이블 생성
-
-
+CREATE TABLE users (
+	id INT AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE,
+    nickname VARCHAR(255) UNIQUE,
+    PRIMARY KEY (id)
+);
 
 -- orders 테이블 생성
-
-
+CREATE TABLE orders (
+	id INT AUTO_INCREMENT,
+	status VARCHAR(50),
+    created_at DATETIME,
+    user_id INT,
+	PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 -- payments 테이블 생성
-
-
+CREATE TABLE payments (
+	id INT AUTO_INCREMENT,
+    amount INT,
+    payment_type VARCHAR(50),
+    order_id INT UNIQUE, -- 1:1 강제하는 효과
+    PRIMARY KEY (id),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+);
 
 -- products 테이블 생성
-
-
+CREATE TABLE products (
+	id INT AUTO_INCREMENT,
+	name VARCHAR(100),
+    price INT,
+    product_type VARCHAR(50),
+    PRIMARY KEY (id)
+);
 
 -- order_details 테이블 생성
+CREATE TABLE order_details (
+	id INT AUTO_INCREMENT,
+	order_id INT,
+    product_id INT,
+    count INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
 
-
+-- users 데이터 삽입
+INSERT INTO users (email, nickname)
+VALUES
+	('sehongpark@cloudstudying.kr', '홍팍'),
+	('kuma@cloudstudying.kr', '쿠마'),
+	('hawk@cloudstudying.kr', '호크');
+    
+-- orders 데이터 삽입
+INSERT INTO orders (status, created_at, user_id)
+VALUES
+	('배송 완료', '2024-11-12 11:07:12', 1),
+	('배송 완료', '2024-11-17 22:14:54', 1),
+	('배송 완료', '2024-11-24 19:13:46', 2),
+	('배송 완료', '2024-11-29 23:57:29', 3),
+	('배송 완료', '2024-12-06 22:25:13', 3),
+	('배송 완료', '2025-01-02 13:04:25', 2),
+	('배송 완료', '2025-01-06 15:45:51', 2),
+	('장바구니', '2025-03-06 14:54:23', 1);
+    
+-- payments 데이터 삽입
+INSERT INTO payments (amount, payment_type, order_id)
+VALUES
+	(9740, 'SAMSONG CARD', 1),
+	(13800, 'SAMSONG CARD', 2),
+	(32200, 'LOTTI CARD', 3),
+	(28420, 'COCOA PAY', 4),
+	(18000, 'COCOA PAY', 5),
+	(5910, 'LOTTI CARD', 6),
+	(17300, 'LOTTI CARD', 7);
+    
+-- products 데이터 삽입
+INSERT INTO products (name, price, product_type)
+VALUES
+	('우유 900ml', 1970, '냉장 식품'),
+	('참치 마요 120g', 4400, '냉장 식품'),
+	('달걀 감자 샐러드 500g', 6900, '냉장 식품'),
+	('달걀 듬뿍 샐러드 500g', 6900, '냉장 식품'),
+	('크림 치즈', 2180, '냉장 식품'),
+	('우유 식빵', 2900, '상온 식품'),
+	('샐러드 키트 6봉', 8900, '냉장 식품'),
+	('무항생제 특란 20구', 7200, '냉장 식품'),
+	('수제 크림 치즈 200g', 9000, '냉장 식품'),
+	('플레인 베이글', 1300, '냉장 식품');
+    
+-- order_details 데이터 삽입
+INSERT INTO order_details (order_id, product_id, count)
+VALUES
+	(1, 1, 2),
+	(1, 6, 2),
+	(2, 3, 1),
+	(2, 4, 1),
+	(3, 7, 2),
+	(3, 8, 2),
+	(4, 2, 3),
+	(4, 5, 4),
+	(4, 10, 5),
+	(5, 9, 2),
+	(6, 1, 3),
+	(7, 8, 2),
+	(7, 6, 1),
+	(8, 6, 3);
 
 -- 확인
 -- SHOW DATABASES;
 SELECT DATABASE();
 SHOW TABLES;
+
+-- 상품 유형별 집계하기
+-- 상품(products) 테이블에서 상품 유형별 상품의 개수, 최고 가격, 최저 가격을 구하려면?
+SELECT 
+	product_type AS '상품 유형',
+    COUNT(*) AS '상품 개수',
+    MAX(price) AS '최고 가격',
+    MIN(price) AS '최저 가격'
+FROM products
+GROUP BY product_type;
+
+-- 사용자 주문 총액 필터링하기
+-- 사용자별 주문 총액을 구하고, 그 총액이 30,000원 이상인 주문자의 주문자명과 주문 총액?
+SELECT 
+	nickname AS '주문자명',
+    amount AS '주문 금액'
+FROM users u
+JOIN orders o ON u.id = o.user_id
+JOIN payments p ON o.id = p.order_id;
+
+SELECT 
+	nickname AS '주문자명',
+    SUM(amount) AS '주문 총액' -- 6) 특정 컬럼을 조회
+FROM users u -- 1) 사용자 테이블에
+JOIN orders o ON u.id = o.user_id -- 2) 주문 테이블을 붙이고
+JOIN payments p ON o.id = p.order_id -- 3) 결제 테이블을 붙여서
+GROUP BY nickname -- 4) 사용자별 그룹화를 진행하여
+HAVING SUM(amount) >= 30000; -- 5) 그룹 필터링을 하고
+
+-- 가장 많이 팔린 상품 TOP3
+-- 상품별 판매 수량을 집계했을 때, 가장 많이 팔린 상품 TOP3의 상품명과 판매수량은?
+-- 판매 수량이 동일할 때는 상품명 순으로 정렬
+SELECT *
+FROM products p
+JOIN order_details od ON p.id = od.product_id
+-- 1) orders 테이블에 장바구니 정보도 함께 저장되어서 이를 구분하기 위해 JOIN을 한번 더하고
+JOIN orders o ON od.order_id = o.id
+WHERE status = '배송 완료'; -- 2) 배송 완료 레코드만 필터링
+
+-- 그룹화, 집계
+SELECT 
+	name AS '상품명',
+    SUM(count) AS '판매 수량'
+FROM products p
+JOIN order_details od ON p.id = od.product_id
+JOIN orders o ON od.order_id = o.id
+WHERE status = '배송 완료'
+GROUP BY p.id, name;
+-- HAVING status = '배송 완료'; -- 에러 발생
+-- HAVING 조건에 사용 가능한 컬럼: GROUP BY 절에 포함된 컬럼, 집계 함수로 집계된 컬럼
+
+-- 정렬 + 개수 제한
+SELECT 
+	p.name AS '상품명',
+    SUM(count) AS '판매 수량' -- 6)
+FROM products p -- 1)
+JOIN order_details od ON p.id = od.product_id -- 2)
+JOIN orders o ON od.order_id = o.id -- 3)
+WHERE status = '배송 완료' -- 4)
+GROUP BY p.id, p.name -- 5)
+ORDER BY SUM(count) DESC, p.name -- 7)
+LIMIT 3; -- 8) 경계에서 잘릴 경우 DB 엔진 내부 구현에 따라 가져옴
+
+-- Quiz
+-- 3. market DB에서 배송 완료된 상품별로 누적 매출 상위 3개 상품 정보를 조회하고자 한다.
+-- 다음 쿼리의 빈칸을 채워 완성하시오.
+
+-- ------------------------------
+-- 상품명              | 누적 매출
+-- ------------------------------
+-- 무항생제 특란 20구    | 28800
+-- 수제 크림 치즈 200g  | 18000
+-- 샐러드 키트 6봉      | 17800
+
+SELECT 
+	name AS '상품명',
+	SUM(price*count) AS '누적 매출'
+FROM products p
+JOIN order_details od ON p.id = od.product_id
+JOIN orders o ON od.order_id = o.id
+			AND status = '배송 완료'
+GROUP BY name
+ORDER BY SUM(price*count) DESC
+LIMIT 3;
+
+-- 정답: 
+
+
+
+
+
+
+
+
+
+
+
+
+
